@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - Avaliação de Estabelecimentos</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .step.current {
+            opacity: 1;
+        }
+        
+        .step.completed {
+            opacity: 1;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .step.current .step-circle {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .step.completed .step-circle {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .step-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        
+        .step.current .step-title {
+            color: #667eea;
+        }
+        
+        .step.completed .step-title {
+            color: #28a745;
+        }
+        
+        .step-description {
+            font-size: 10px;
+            color: #adb5bd;
+            text-align: center;
+        }
+        
+        .step.current .step-description {
+            color: #667eea;
+        }
+        
+        .step.completed .step-description {
+            color: #28a745;
+        }
+        
+        .connector-line {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: -1;
+        }
+        
+        .step.completed .connector-line {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .rating-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 80px;
+        }
+        
+        .rating-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .rating-option.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .rating-emoji {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .rating-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #e9ecef;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .mb-30 {
+            margin-bottom: 30px;
+        }
+        
+        .text-primary {
+            color: #333;
+        }
+        
+        .text-secondary {
+            color: #666;
+        }
+        
+        .text-muted {
+            color: #999;
+        }
+        
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px;
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .step-circle {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .step-title {
+                font-size: 10px;
+            }
+            
+            .step-description {
+                font-size: 9px;
+            }
+            
+            .connector-line {
+                top: 17.5px;
+            }
+            
+            .form-input, .form-select {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="container">
+            <div class="card">
+                <div class="text-center mb-30">
+                    <h1 class="text-primary mb-20">🔄 Carregando...</h1>
+                    <p class="text-secondary">Se esta mensagem permanecer, há um problema com o JavaScript.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, createContext, useContext, useReducer } = React;
+
+        // Context
+        const FeedbackContext = createContext();
+
+        const initialState = {
+            currentScreen: 'user-info',
+            data: {},
+            isLoading: false,
+            error: null,
+        };
+
+        function feedbackReducer(state, action) {
+            switch (action.type) {
+                case 'SET_SCREEN':
+                    return { ...state, currentScreen: action.payload };
+                case 'UPDATE_DATA':
+                    return { ...state, data: { ...state.data, ...action.payload } };
+                case 'SET_LOADING':
+                    return { ...state, isLoading: action.payload };
+                case 'SET_ERROR':
+                    return { ...state, error: action.payload };
+                case 'RESET':
+                    return initialState;
+                default:
+                    return state;
+            }
+        }
+
+        function FeedbackProvider({ children }) {
+            const [state, dispatch] = useReducer(feedbackReducer, initialState);
+
+            const setScreen = (screen) => {
+                dispatch({ type: 'SET_SCREEN', payload: screen });
+            };
+
+            const nextScreen = () => {
+                const screens = ['user-info', 'service-rating', 'food-rating', 'wait-time-rating', 'space-rating', 'summary'];
+                const currentIndex = screens.indexOf(state.currentScreen);
+                if (currentIndex < screens.length - 1) {
+                    setScreen(screens[currentIndex + 1]);
+                }
+            };
+
+            const previousScreen = () => {
+                const screens = ['user-info', 'service-rating', 'food-rating', 'wait-time-rating', 'space-rating', 'summary'];
+                const currentIndex = screens.indexOf(state.currentScreen);
+                if (currentIndex > 0) {
+                    setScreen(screens[currentIndex - 1]);
+                }
+            };
+
+            const updateData = (data) => {
+                dispatch({ type: 'UPDATE_DATA', payload: data });
+            };
+
+            const setLoading = (loading) => {
+                dispatch({ type: 'SET_LOADING', payload: loading });
+            };
+
+            const setError = (error) => {
+                dispatch({ type: 'SET_ERROR', payload: error });
+            };
+
+            const reset = () => {
+                dispatch({ type: 'RESET' });
+            };
+
+            return (
+                <FeedbackContext.Provider value={{
+                    state,
+                    setScreen,
+                    nextScreen,
+                    previousScreen,
+                    updateData,
+                    setLoading,
+                    setError,
+                    reset,
+                }}>
+                    {children}
+                </FeedbackContext.Provider>
+            );
+        }
+
+        function useFeedback() {
+            const context = useContext(FeedbackContext);
+            if (context === undefined) {
+                throw new Error('useFeedback must be used within a FeedbackProvider');
+            }
+            return context;
+        }
+
+        // Progress Indicator
+        const NAVIGATION_STEPS = [
+            { id: 'user-info', title: 'Identificação', description: 'Informações básicas', emoji: '👤' },
+            { id: 'service-rating', title: 'Atendimento', description: 'Avalie o atendimento', emoji: '👥' },
+            { id: 'food-rating', title: 'Comida', description: 'Avalie a comida', emoji: '🍽️' },
+            { id: 'wait-time-rating', title: 'Tempo de Espera', description: 'Avalie o tempo de espera', emoji: '⏰' },
+            { id: 'space-rating', title: 'Espaço', description: 'Avalie o ambiente', emoji: '🏠' },
+            { id: 'summary', title: 'Resumo', description: 'Revise e envie', emoji: '📋' }
+        ];
+
+        function ProgressIndicator({ currentScreen }) {
+            const currentIndex = NAVIGATION_STEPS.findIndex(step => step.id === currentScreen);
+            
+            return (
+                <div className="progress-container">
+                    {NAVIGATION_STEPS.map((step, index) => {
+                        const isCompleted = index < currentIndex;
+                        const isCurrent = index === currentIndex;
+                        const isUpcoming = index > currentIndex;
+                        
+                        return (
+                            <div key={step.id} className={`step ${isCompleted ? 'completed' : isCurrent ? 'current' : ''}`}>
+                                <div className="step-circle">
+                                    {isCompleted ? '✓' : step.emoji}
+                                </div>
+                                <div className="step-title">
+                                    {step.title}
+                                </div>
+                                <div className="step-description">
+                                    {step.description}
+                                </div>
+                                {index < NAVIGATION_STEPS.length - 1 && (
+                                    <div className={`connector-line ${isCompleted ? 'completed' : ''}`}></div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // User Info Screen
+        function UserInfoScreen() {
+            const { updateData, nextScreen } = useFeedback();
+            const [formData, setFormData] = useState({
+                gender: '',
+                age: 0,
+                visitTime: '',
+                dish: '',
+            });
+
+            const handleInputChange = (field, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    [field]: field === 'age' ? parseInt(value) || 0 : value
+                }));
+            };
+
+            const handleNext = () => {
+                if (formData.gender && formData.age && formData.visitTime && formData.dish) {
+                    updateData({ userInfo: formData });
+                    nextScreen();
+                }
+            };
+
+            const isFormValid = formData.gender && formData.age && formData.visitTime && formData.dish;
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">👤 Identificação</h1>
+                        <p className="text-secondary">Vamos começar com algumas informações básicas</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <div className="form-group">
+                            <label className="form-label">Sexo *</label>
+                            <select 
+                                className="form-select"
+                                value={formData.gender}
+                                onChange={(e) => handleInputChange('gender', e.target.value)}
+                            >
+                                <option value="">Selecione seu sexo</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Idade *</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={formData.age || ''}
+                                onChange={(e) => handleInputChange('age', e.target.value)}
+                                placeholder="Digite sua idade"
+                                min="1"
+                                max="120"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Horário da visita *</label>
+                            <select 
+                                className="form-select"
+                                value={formData.visitTime}
+                                onChange={(e) => handleInputChange('visitTime', e.target.value)}
+                            >
+                                <option value="">Selecione o horário</option>
+                                <option value="cafe-manha">Café da Manhã (6h-11h)</option>
+                                <option value="almoco">Almoço (11h-15h)</option>
+                                <option value="lanche">Lanche (15h-18h)</option>
+                                <option value="jantar">Jantar (18h-22h)</option>
+                                <option value="happy-hour">Happy Hour (17h-20h)</option>
+                                <option value="noite">Noite (20h-24h)</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Prato consumido *</label>
+                            <select 
+                                className="form-select"
+                                value={formData.dish}
+                                onChange={(e) => handleInputChange('dish', e.target.value)}
+                            >
+                                <option value="">Selecione o prato</option>
+                                <option value="prato-principal">Prato Principal</option>
+                                <option value="entrada">Entrada</option>
+                                <option value="sobremesa">Sobremesa</option>
+                                <option value="bebida">Bebida</option>
+                                <option value="lanche">Lanche</option>
+                                <option value="cafe">Café</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button
+                        className="btn"
+                        onClick={handleNext}
+                        disabled={!isFormValid}
+                    >
+                        Continuar
+                    </button>
+                </div>
+            );
+        }
+
+        // Service Rating Screen
+        function ServiceRatingScreen() {
+            const { updateData, nextScreen, previousScreen } = useFeedback();
+            const [rating, setRating] = useState(null);
+            const [comment, setComment] = useState('');
+
+            const handleNext = () => {
+                if (rating !== null) {
+                    updateData({
+                        serviceRating: { rating, comment: comment.trim() || undefined }
+                    });
+                    nextScreen();
+                }
+            };
+
+            const handleBack = () => {
+                previousScreen();
+            };
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">👥 Avalie o Atendimento</h1>
+                        <p className="text-secondary">Como você avalia o atendimento que recebeu?</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <div className="form-group">
+                            <label className="form-label">Avaliação do Atendimento *</label>
+                            <div className="rating-grid">
+                                {[
+                                    { value: 1, emoji: '😞', label: 'Muito Ruim' },
+                                    { value: 2, emoji: '😕', label: 'Ruim' },
+                                    { value: 3, emoji: '😐', label: 'Regular' },
+                                    { value: 4, emoji: '😊', label: 'Bom' },
+                                    { value: 5, emoji: '😍', label: 'Excelente' }
+                                ].map(option => (
+                                    <div
+                                        key={option.value}
+                                        className={`rating-option ${rating === option.value ? 'selected' : ''}`}
+                                        onClick={() => setRating(option.value)}
+                                    >
+                                        <div className="rating-emoji">{option.emoji}</div>
+                                        <div className="rating-label">{option.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Comentário (opcional)</label>
+                            <textarea
+                                className="form-input"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Deixe um comentário sobre o atendimento..."
+                                rows="3"
+                                style={{ resize: 'vertical', minHeight: '80px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="button-container">
+                        <button className="btn btn-secondary" onClick={handleBack}>
+                            Voltar
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={handleNext}
+                            disabled={rating === null}
+                        >
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Food Rating Screen
+        function FoodRatingScreen() {
+            const { updateData, nextScreen, previousScreen } = useFeedback();
+            const [rating, setRating] = useState(null);
+            const [comment, setComment] = useState('');
+
+            const handleNext = () => {
+                if (rating !== null) {
+                    updateData({
+                        foodRating: { rating, comment: comment.trim() || undefined }
+                    });
+                    nextScreen();
+                }
+            };
+
+            const handleBack = () => {
+                previousScreen();
+            };
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">🍽️ Avalie a Comida</h1>
+                        <p className="text-secondary">Como você avalia a qualidade da comida?</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <div className="form-group">
+                            <label className="form-label">Avaliação da Comida *</label>
+                            <div className="rating-grid">
+                                {[
+                                    { value: 1, emoji: '🤢', label: 'Muito Ruim' },
+                                    { value: 2, emoji: '😕', label: 'Ruim' },
+                                    { value: 3, emoji: '😐', label: 'Regular' },
+                                    { value: 4, emoji: '😋', label: 'Bom' },
+                                    { value: 5, emoji: '🤤', label: 'Excelente' }
+                                ].map(option => (
+                                    <div
+                                        key={option.value}
+                                        className={`rating-option ${rating === option.value ? 'selected' : ''}`}
+                                        onClick={() => setRating(option.value)}
+                                    >
+                                        <div className="rating-emoji">{option.emoji}</div>
+                                        <div className="rating-label">{option.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Comentário (opcional)</label>
+                            <textarea
+                                className="form-input"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Deixe um comentário sobre a comida..."
+                                rows="3"
+                                style={{ resize: 'vertical', minHeight: '80px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="button-container">
+                        <button className="btn btn-secondary" onClick={handleBack}>
+                            Voltar
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={handleNext}
+                            disabled={rating === null}
+                        >
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Wait Time Rating Screen
+        function WaitTimeRatingScreen() {
+            const { updateData, nextScreen, previousScreen } = useFeedback();
+            const [rating, setRating] = useState(null);
+            const [comment, setComment] = useState('');
+
+            const handleNext = () => {
+                if (rating !== null) {
+                    updateData({
+                        waitTimeRating: { rating, comment: comment.trim() || undefined }
+                    });
+                    nextScreen();
+                }
+            };
+
+            const handleBack = () => {
+                previousScreen();
+            };
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">⏰ Avalie o Tempo de Espera</h1>
+                        <p className="text-secondary">Como você avalia o tempo de espera?</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <div className="form-group">
+                            <label className="form-label">Avaliação do Tempo de Espera *</label>
+                            <div className="rating-grid">
+                                {[
+                                    { value: 1, emoji: '😤', label: 'Muito Lento' },
+                                    { value: 2, emoji: '😕', label: 'Lento' },
+                                    { value: 3, emoji: '😐', label: 'Regular' },
+                                    { value: 4, emoji: '😊', label: 'Rápido' },
+                                    { value: 5, emoji: '⚡', label: 'Muito Rápido' }
+                                ].map(option => (
+                                    <div
+                                        key={option.value}
+                                        className={`rating-option ${rating === option.value ? 'selected' : ''}`}
+                                        onClick={() => setRating(option.value)}
+                                    >
+                                        <div className="rating-emoji">{option.emoji}</div>
+                                        <div className="rating-label">{option.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Comentário (opcional)</label>
+                            <textarea
+                                className="form-input"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Deixe um comentário sobre o tempo de espera..."
+                                rows="3"
+                                style={{ resize: 'vertical', minHeight: '80px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="button-container">
+                        <button className="btn btn-secondary" onClick={handleBack}>
+                            Voltar
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={handleNext}
+                            disabled={rating === null}
+                        >
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Space Rating Screen
+        function SpaceRatingScreen() {
+            const { updateData, nextScreen, previousScreen } = useFeedback();
+            const [rating, setRating] = useState(null);
+            const [comment, setComment] = useState('');
+
+            const handleNext = () => {
+                if (rating !== null) {
+                    updateData({
+                        spaceRating: { rating, comment: comment.trim() || undefined }
+                    });
+                    nextScreen();
+                }
+            };
+
+            const handleBack = () => {
+                previousScreen();
+            };
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">🏠 Avalie o Ambiente</h1>
+                        <p className="text-secondary">Como você avalia o conforto e ambiente do estabelecimento?</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <div className="form-group">
+                            <label className="form-label">Avaliação do Ambiente *</label>
+                            <div className="rating-grid">
+                                {[
+                                    { value: 1, emoji: '😞', label: 'Muito Ruim' },
+                                    { value: 2, emoji: '😕', label: 'Ruim' },
+                                    { value: 3, emoji: '😐', label: 'Regular' },
+                                    { value: 4, emoji: '😊', label: 'Bom' },
+                                    { value: 5, emoji: '🤩', label: 'Excelente' }
+                                ].map(option => (
+                                    <div
+                                        key={option.value}
+                                        className={`rating-option ${rating === option.value ? 'selected' : ''}`}
+                                        onClick={() => setRating(option.value)}
+                                    >
+                                        <div className="rating-emoji">{option.emoji}</div>
+                                        <div className="rating-label">{option.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Comentário (opcional)</label>
+                            <textarea
+                                className="form-input"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Deixe um comentário sobre o ambiente..."
+                                rows="3"
+                                style={{ resize: 'vertical', minHeight: '80px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="button-container">
+                        <button className="btn btn-secondary" onClick={handleBack}>
+                            Voltar
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={handleNext}
+                            disabled={rating === null}
+                        >
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Summary Screen
+        function SummaryScreen() {
+            const { state, previousScreen, reset } = useFeedback();
+            const [finalComment, setFinalComment] = useState('');
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [submitted, setSubmitted] = useState(false);
+
+            const handleSubmit = async () => {
+                setIsSubmitting(true);
+                
+                // Simular envio para Google Sheets
+                setTimeout(() => {
+                    setIsSubmitting(false);
+                    setSubmitted(true);
+                    
+                    // Reset após 3 segundos
+                    setTimeout(() => {
+                        reset();
+                        setSubmitted(false);
+                        setFinalComment('');
+                    }, 3000);
+                }, 2000);
+            };
+
+            const handleBack = () => {
+                previousScreen();
+            };
+
+            if (submitted) {
+                return (
+                    <div className="card">
+                        <div className="text-center mb-30">
+                            <h1 className="text-primary mb-20 success">✅ Avaliação Enviada!</h1>
+                            <p className="text-secondary">Obrigado pela sua avaliação!</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-muted">Redirecionando para o início...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="card">
+                    <div className="text-center mb-30">
+                        <h1 className="text-primary mb-20">📋 Resumo da Avaliação</h1>
+                        <p className="text-secondary">Revise suas avaliações antes de enviar</p>
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        {/* Informações do Usuário */}
+                        <div className="form-group">
+                            <h3 className="text-primary" style={{ marginBottom: '15px' }}>Informações Pessoais</h3>
+                            <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+                                <p><strong>Sexo:</strong> {state.data.userInfo?.gender || 'Não informado'}</p>
+                                <p><strong>Idade:</strong> {state.data.userInfo?.age || 'Não informado'}</p>
+                                <p><strong>Horário da visita:</strong> {state.data.userInfo?.visitTime || 'Não informado'}</p>
+                                <p><strong>Prato consumido:</strong> {state.data.userInfo?.dish || 'Não informado'}</p>
+                            </div>
+                        </div>
+
+                        {/* Avaliações */}
+                        <div className="form-group">
+                            <h3 className="text-primary" style={{ marginBottom: '15px' }}>Avaliações</h3>
+                            
+                            {state.data.serviceRating && (
+                                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                                    <p><strong>Atendimento:</strong> {'⭐'.repeat(state.data.serviceRating.rating)} ({state.data.serviceRating.rating}/5)</p>
+                                    {state.data.serviceRating.comment && <p><em>"{state.data.serviceRating.comment}"</em></p>}
+                                </div>
+                            )}
+
+                            {state.data.foodRating && (
+                                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                                    <p><strong>Comida:</strong> {'⭐'.repeat(state.data.foodRating.rating)} ({state.data.foodRating.rating}/5)</p>
+                                    {state.data.foodRating.comment && <p><em>"{state.data.foodRating.comment}"</em></p>}
+                                </div>
+                            )}
+
+                            {state.data.waitTimeRating && (
+                                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                                    <p><strong>Tempo de Espera:</strong> {'⭐'.repeat(state.data.waitTimeRating.rating)} ({state.data.waitTimeRating.rating}/5)</p>
+                                    {state.data.waitTimeRating.comment && <p><em>"{state.data.waitTimeRating.comment}"</em></p>}
+                                </div>
+                            )}
+
+                            {state.data.spaceRating && (
+                                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                                    <p><strong>Ambiente:</strong> {'⭐'.repeat(state.data.spaceRating.rating)} ({state.data.spaceRating.rating}/5)</p>
+                                    {state.data.spaceRating.comment && <p><em>"{state.data.spaceRating.comment}"</em></p>}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Comentário Final */}
+                        <div className="form-group">
+                            <label className="form-label">Comentário Final (opcional)</label>
+                            <textarea
+                                className="form-input"
+                                value={finalComment}
+                                onChange={(e) => setFinalComment(e.target.value)}
+                                placeholder="Deixe um comentário geral sobre sua experiência..."
+                                rows="4"
+                                style={{ resize: 'vertical', minHeight: '100px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="button-container">
+                        <button className="btn btn-secondary" onClick={handleBack}>
+                            Voltar
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Enviando...' : 'Enviar Avaliação'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // App Component
+        function App() {
+            const { state } = useFeedback();
+
+            const renderCurrentScreen = () => {
+                switch (state.currentScreen) {
+                    case 'user-info':
+                        return <UserInfoScreen />;
+                    case 'service-rating':
+                        return <ServiceRatingScreen />;
+                    case 'food-rating':
+                        return <FoodRatingScreen />;
+                    case 'wait-time-rating':
+                        return <WaitTimeRatingScreen />;
+                    case 'space-rating':
+                        return <SpaceRatingScreen />;
+                    case 'summary':
+                        return <SummaryScreen />;
+                    default:
+                        return <UserInfoScreen />;
+                }
+            };
+
+            return (
+                <div className="container">
+                    <ProgressIndicator currentScreen={state.currentScreen} />
+                    {renderCurrentScreen()}
+                </div>
+            );
+        }
+
+        // Render App
+        ReactDOM.render(
+            <React.StrictMode>
+                <FeedbackProvider>
+                    <App />
+                </FeedbackProvider>
+            </React.StrictMode>,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
